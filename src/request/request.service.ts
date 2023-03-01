@@ -1,33 +1,54 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { CatEntity } from 'libs/model/cat/cat.entity';
-import { CatDto } from 'libs/model/cat/cat.interface';
+import { Knex } from 'knex';
+import { DatabaseService } from 'libs/database/database.service';
+import { CatDto } from 'libs/model/cat/cat.dto';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class RequestService {
+    private dbInstance: Knex;
     constructor(
-        @InjectRepository(CatEntity)
-        private readonly catRepository: Repository<CatEntity>
-    ) { }
+        private db: DatabaseService,
+    ) { this.dbInstance = this.db.getInstance(); }
 
-    create(cat: CatDto) {
-        return this.catRepository.save(cat)
+    async create(cat: CatDto): Promise<CatDto> {
+        const rows = await this.db
+            .connection('cat-info')
+            .insert(cat)
+            .returning('*');
+        return rows[0];
     }
 
     getCats() {
-        return this.catRepository.find()
+        return this.db
+            .connection('cat-info')
+            .select()
+            .orderBy('id', 'asc')
     }
 
     getCat(id: number) {
-        return this.catRepository.findOneBy({ id })
+        return this.db
+            .connection('cat-info')
+            .select()
+            .where({ id })
+            .then((rows) => rows[0])
+
     }
 
     update(id: number, cat: CatDto) {
-        return this.catRepository.update(id, cat)
+        return this.db
+            .connection('cat-info')
+            .update(cat)
+            .where({ id })
+            .returning('*')
+            .then((rows) => rows[0])
     }
 
     delete(id: number) {
-        return this.catRepository.delete({ id })
+        return this.db
+            .connection('cat-info')
+            .delete()
+            .where({ id })
+            .returning('id')
     }
 }
