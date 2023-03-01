@@ -1,11 +1,14 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
-import { CatDto } from 'libs/model/cat/cat.interface';
+
+import { CatDto } from 'libs/model/cat/cat.dto';
 import { RequestService } from './request.service';
 
 @Controller('request')
 export class RequestController {
 
-    constructor(private requestService: RequestService) { }
+    constructor(private requestService: RequestService,
+
+    ) { }
 
     @Post()
     create(@Body() body: CatDto) {
